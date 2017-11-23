@@ -1,4 +1,4 @@
-# GrapeFluid/AssetLoader
+# GrapeFluid/AssetLoader <img align="right" height="40px" src="https://developers.grapesc.cz/logo_inline.png">
 
 [![PHP from Packagist](https://img.shields.io/packagist/php-v/grape-fluid/asset-loader.svg?style=flat-square)](https://packagist.org/packages/grape-fluid/asset-loader)
 [![Licence](https://img.shields.io/packagist/l/grape-fluid/asset-loader.svg?style=flat-square)](https://packagist.org/packages/grape-fluid/asset-loader)
