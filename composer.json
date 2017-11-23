@@ -1,0 +1,25 @@
+{
+  "name": "grape-fluid/asset-loader",
+  "keywords": ["grape-fluid", "fluid-cms", "assets"],
+  "type": "library",
+  "license": "BSD-3-Clause",
+  "homepage": "https://github.com/grape-fluid/asset-loader",
+  "authors": [
+    {
+      "name": "GRAPE SC, a.s.",
+      "email": "developers@grapesc.cz",
+      "homepage": "https://developers.grapesc.cz"
+    }
+  ],
+  "require": {
+    "php": ">= 5.6",
+    "nette/application": "^2.4"
+  },
+  "autoload": {
+    "classmap": [
+      "src/"
+    ]
+  },
+  "prefer-stable": true,
+  "minimum-stability": "dev"
+}
