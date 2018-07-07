@@ -85,7 +85,7 @@ assets:
 ## Custom destination
 
 If you need, for any reason, copy file into public directory with custom name or custom directory,
-just specify asset as array. You can use `&` character that will be replaces with public assets directory folder.
+just specify asset as array. You can use `&` character that will be replaced with public assets directory folder.
 
 ```
 assets:
@@ -114,7 +114,7 @@ But it's getting more interesting with these options.
 
 You can limit **assets** by Nette-like links.
 By default all defined assets are enabled everywhere.
-**You can combine multiple limits.** By using limits AssetLoader will load only assets that matches your limit.
+**You can combine multiple limits.** By using limits Asset Loader will load only assets that matches your limit.
 You can easily create assets for backend / frontend, but also for sub-frontend modules, etc.
 
 #### How to limit asset for **module**?
@@ -218,7 +218,7 @@ assets:
 		debug: true
 ```
 
-When debug mode is one, Asseet Loader watch files for changes and deploy them automatically.
+When debug mode is one, Asset Loader watch files for changes and deploy them automatically.
 It also works if you add new files into your packages.
 
 ## Other
