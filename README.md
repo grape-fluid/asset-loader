@@ -75,35 +75,35 @@ If you have too many files (for ex. scripts) that you want to include in your te
 or just want to copy whole directory (for ex. with images),
 you can use asterisk `*` character.
 
-	```
-	assets:
-		yourPackage:
-			js:
-				- %appDir%/modules/WebsiteModule/assets/js/scripts/*
-	```
+```
+assets:
+	yourPackage:
+		js:
+			- %appDir%/modules/WebsiteModule/assets/js/scripts/*
+```
 
 ## Custom destination
 
 If you need, for any reason, copy file into public directory with custom name or custom directory,
 just specify asset as array. You can use `&` character that will be replaces with public assets directory folder.
 
-	```
-	assets:
-		yourPackage:
-			js:
-				# [ source, destination ]
-				- [ %appDir%/modules/WebsiteModule/assets/js/main.js, &/my/folder/test.js ]
-	```
+```
+assets:
+	yourPackage:
+		js:
+			# [ source, destination ]
+			- [ %appDir%/modules/WebsiteModule/assets/js/main.js, &/my/folder/test.js ]
+```
 	
 You can also do the same with whole **directories**:
 
-	```
-	assets:
-		yourPackage:
-			js:
-				# [ source, destination ]
-				- [ %appDir%/modules/StyleModule/assets/images/*, &/images/ ]
-	```
+```
+assets:
+	yourPackage:
+		js:
+			# [ source, destination ]
+			- [ %appDir%/modules/StyleModule/assets/images/*, &/images/ ]
+```
 	
 ## Options
 
