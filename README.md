@@ -8,9 +8,233 @@
 [![Downloads total](https://img.shields.io/packagist/dt/grape-fluid/asset-loader.svg?style=flat-square)](https://packagist.org/packages/grape-fluid/asset-loader)
 [![Latest stable](https://img.shields.io/packagist/v/grape-fluid/asset-loader.svg?style=flat-square)](https://packagist.org/packages/grape-fluid/asset-loader)
 
+Asset Loader for your Nette projects
 
-## Install
+## Quickstart
+
+1. Install Asset Loader with composer
+
+	```
+	composer require grape-fluid/asset-loader
+	```
+
+2. Register **extension** (in neon)
+
+	```
+	extensions:
+		assets: Grapesc\GrapeFluid\AssetLoaderExtension
+	```
+	
+3. Set your **public directory** (mostly www) (in neon)
+
+	```
+	assets:
+		config:
+			wwwDir: %appDir%/../www
+	```
+	
+4. Set-up your first package (see all options / features below)
+
+	```
+	assets:
+		yourPackage:
+			js:
+				# will create file in wwwDir/assets/yourPackage/js/main.js
+				- %appDir%/modules/WebsiteModule/assets/js/main.js
+			css:
+				# will create file in wwwDir/assets/yourPackage/css/styles.css
+				- %appDir%/modules/StyleModule/assets/css/style.css
+			copy:
+				# will copy all images from folder into wwwDir/assets/yourPackage/copy/
+				- %appDir%/modules/StyleModule/assets/images/*
+	```
+	
+5. Inject *AssetsControl* and create component in your **BasePresenter**
+
+	``` 
+    /** @var \Grapesc\GrapeFluid\AssetsControl\AssetsControl @inject */
+    public $assets;
+    
+    
+    protected function createComponentAssets()
+    {
+    	return $this->assets;
+    }
+	```
+	
+6. Render your assets in **template**
+
+	``` 
+    {control assets:css}
+    {control assets:js}
+	```
+	
+## Multiple files
+
+If you have too many files (for ex. scripts) that you want to include in your templates, 
+or just want to copy whole directory (for ex. with images),
+you can use asterisk `*` character.
+
+	```
+	assets:
+		yourPackage:
+			js:
+				- %appDir%/modules/WebsiteModule/assets/js/scripts/*
+	```
+
+## Custom destination
+
+If you need, for any reason, copy file into public directory with custom name or custom directory,
+just specify asset as array. You can use `&` character that will be replaces with public assets directory folder.
+
+	```
+	assets:
+		yourPackage:
+			js:
+				# [ source, destination ]
+				- [ %appDir%/modules/WebsiteModule/assets/js/main.js, &/my/folder/test.js ]
+	```
+	
+You can also do the same with whole **directories**:
+
+	```
+	assets:
+		yourPackage:
+			js:
+				# [ source, destination ]
+				- [ %appDir%/modules/StyleModule/assets/images/*, &/images/ ]
+	```
+	
+## Options
+
+Of course, quickstart doesn't do anything special but copy files and use them in your template files.
+But it's getting more interesting with these options.
+
+### Limits
+
+You can limit **assets** by Nette-like links.
+By default all defined assets are enabled everywhere.
+**You can combine multiple limits.** By using limits AssetLoader will load only assets that matches your limit.
+You can easily create assets for backend / frontend, but also for sub-frontend modules, etc.
+
+#### How to limit asset for **module**?
 
 ```
-composer require grape-fluid/asset-loader
+assets:
+	yourPackage:
+		limit:
+			- ":Module:.*"
 ```
+
+#### How to limit asset for multiple **presenters**?
+
+```
+assets:
+	yourPackage:
+		limit:
+			- ":Module:Presenter:.*"
+			- ":Module:AnotherPresenter:.*"
+```
+
+#### Limiting by access rights ($user->isAllowed())
+```
+assets:
+	yourPackage:
+		# Will call $user->isAllowed('homepage')
+		- ['link' = ':Module:Presenter.*', 'auth' = 'homepage']
+```
+
+#### Limiting by custom options
+
+Create and register custom service that implements `\Grapesc\GrapeFluid\Options\IAssetOptions` interface.
+Now you are able to handle limits in any way you want.
+For example enable / disable assets from your back-office.
+
+```
+assets:
+	yourPackage:
+		# Will call $yourService->getOption('inline.enabled')
+		- ['link' = ':Module:Presenter.*', 'option' = 'inline.enabled']
+```
+
+#### Using negation limit
+
+Use `!` in front of limit
+
+```
+assets:
+	yourPackage:
+		limit:
+			- "!:Module:Presenter:.*"
+```
+
+### Ordering
+
+Sometimes, especially when using modules, it comes handy to sort / order your packages.
+
+#### Start / End
+
+```
+assets:
+	yourPackage:
+		order: [start|end]
+```
+
+#### Before / After
+
+```
+assets:
+	yourPackage:
+		order:
+			[before|after]: anotherPackageName
+```
+
+or
+
+```
+assets:
+	yourPackage:
+		order:
+			type: [before|after]
+			position: anotherPackageName
+```
+
+### Disabling
+
+```
+assets:
+	yourPackage:
+		[disable|disabled]: true
+```
+
+
+## Debug
+
+By default Asset Loader operates in production mode, you can override this with following:
+
+	```
+	assets:
+		config:
+			debug: true
+	```
+
+When debug mode is one, Asseet Loader watch files for changes and deploy them automatically.
+It also works if you add new files into your packages.
+
+## Other
+
+### Custom asset folder
+
+	```
+	assets:
+		config:
+			assetsDir: customDirectoryName
+	```
+
+### Directory permissions
+
+	```
+	assets:
+		config:
+			dirPerm: 0511
+	```

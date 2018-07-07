@@ -20,7 +20,7 @@ class AssetRepository
 	private $assets = [];
 
 	/** @var array */
-	private $params;
+	private $config;
 
 	/** @var Cache */
 	private $cache;
@@ -29,10 +29,10 @@ class AssetRepository
 	private $deployed = false;
 
 
-	public function __construct(array $params, array $assets = [], IStorage $IStorage)
+	public function __construct(array $config, array $assets = [], IStorage $IStorage)
 	{
+		$this->config = $config;
 		$this->assets = $assets;
-		$this->params = $params;
 		$this->cache  = new Cache($IStorage, "Fluid.Assets");
 
 		$this->sortAssets();
@@ -81,20 +81,20 @@ class AssetRepository
 
 		if ($files !== null) {
 			foreach($files as $limit => $paths) {
-				foreach ($paths as $path => $desc) {
-					if ($desc['type'] == 'copy') {
+				foreach ($paths as $path => $info) {
+					if ($info['type'] == 'copy') {
 						continue;
 					}
-					$tempCache[$path] = $desc['time'];
+					$tempCache[$path] = $info;
 				}
 			}
 
 			foreach($list as $limit => $paths) {
-				foreach ($paths as $path => $desc) {
-					if ($desc['type'] == 'copy') {
+				foreach ($paths as $path => $info) {
+					if ($info['type'] == 'copy') {
 						continue;
 					}
-					$tempLive[$path] = $desc['time'];
+					$tempLive[$path] = $info;
 				}
 			}
 		}
@@ -102,7 +102,7 @@ class AssetRepository
 		if ($files === null) {
 			$process = $list;
 		} else {
-			$process = array_diff_assoc($tempCache, $tempLive);
+			$process = $this->getAssetsDifferencies($tempCache, $tempLive);
 			$individual = true;
 		}
 
@@ -117,13 +117,13 @@ class AssetRepository
 				foreach ($process as $limit => $files)
 				{
 					foreach ($files as $path => $info) {
-						$this->deployFile($path, ($info['asset'] == "upload" && $info['type'] == "copy"), (array_key_exists("destination", $info) ? $info['destination'] : null));
+                        $this->deployAsset($path, $info);
 						$deployed[] = $path;
 					}
 				}
 			} else {
 				foreach ($process as $path => $info) {
-					$this->deployFile($path);
+				    $this->deployAsset($path, $info);
 				}
 			}
 
@@ -147,7 +147,7 @@ class AssetRepository
 		{
 			foreach ($files as $path => $info) {
 				if (($info['asset'] == "upload" && $info['type'] == "copy")) {
-					$this->deployFile($path, true);
+				    $this->deployAsset($path, $info);
 					$deployed[] = $path;
 				}
 			}
@@ -192,39 +192,55 @@ class AssetRepository
 					}
 				} elseif (in_array($type, ["js", "css", "copy"])) {
 					foreach ($records as $file) {
-						if (is_array($file) && array_key_exists(0, $file) && array_key_exists(1, $file)) {
-							$file[0] = $this->getEnvironmentPath($file[0]);
-							$file[1] = $this->getEnvironmentPath($file[1]);
-							if (file_exists($file[0])) {
-								$files[$file[0]] = [ "time" => filemtime($file[0]), "type" => $type, "asset" => $asset, "destination" => $file[1]];
-								continue;
-							} elseif (basename($file[0]) == "*") {
+						if (is_array($file) && isset($file[0]) && isset($file[1])) {
+							$file[0] = $this->preparePath($file[0]);
+							$file[1] = $this->preparePath($file[1]);
+							if (basename($file[0]) == "*") {
 								if (!is_dir(dirname($file[0]))) {
 									continue;
 								}
-								# TODO: Podpora pro kopírování 1:1 podsložky
+
+								/* @todo: Podpora pro kopírování 1:1 podsložky */
 								$found = Finder::findFiles(basename($file[0]))->from(dirname($file[0]));
+
 								/**
 								 * @var string $path
 								 * @var \SplFileInfo $info
 								 */
 								foreach ($found as $path => $info) {
-									$files[$path] = [
-										"time" => filemtime($path),
-										"type" => $type,
-										"asset" => $asset,
-										"destination" => str_replace("*", $info->getFilename(), $file[1])
-									];
+									if (basename($file[1]) == "*") {
+										$destination = str_replace("*", $info->getFilename(), $file[1]);
+									} else {
+										$destination = $file[1] . DIRECTORY_SEPARATOR . $info->getFilename();
+									}
+									if (!(array_key_exists($path, $files) && in_array($files[$path]['type'], ["css", "js"]))) {
+										$files[$path] = [
+											"time" => filemtime($path),
+											"type" => $type,
+											"asset" => $asset,
+											"destination" => $destination
+										];
+									}
 								}
+								continue;
+							} elseif (file_exists($file[0])) {
+								$files[$file[0]] = [
+									"time" => filemtime($file[0]),
+									"type" => $type,
+									"asset" => $asset,
+									"destination" => $file[1]
+								];
+								continue;
+							} else {
 								continue;
 							}
 						} elseif (filter_var($file, FILTER_VALIDATE_URL) !== false) {
 							$files[$file] = [ "time" => 0, "type" => $type, "asset" => $asset ];
 							continue;
-						} elseif (!file_exists(dirname($this->getEnvironmentPath($file)))) {
+						} elseif (!file_exists(dirname($this->preparePath($file)))) {
 							continue;
 						} else {
-							$file = $this->getEnvironmentPath($file);
+							$file = $this->preparePath($file);
 							if (!is_dir(dirname($file))) {
 								continue;
 							}
@@ -305,13 +321,19 @@ class AssetRepository
 								$desc += ["option" => $limit['option']];
 							}
 							if (isset($desc['destination'])) {
-								$path = str_replace($this->getAssetsPublicDirectory(), "", $desc['destination']);
+								$destination = $desc['destination'];
+								unset($desc['destination']);
+								$assets[$this->getAssetsDirectory() . str_replace($this->getAssetsPublicDirectory(), "", $destination)] = $desc;
+								continue;
 							}
 
 							if ($isUrl) {
 								$assets[$path] = $desc + ["url" => true];
 							} else {
-								$assets[str_replace(DIRECTORY_SEPARATOR, "/", str_replace($this->getApplicationDirectory(), "", $path))] = $desc;
+								$htmlPath = $this->getAssetsDirectory() . DIRECTORY_SEPARATOR .
+									$desc['asset'] . DIRECTORY_SEPARATOR . $desc['type'] .
+									DIRECTORY_SEPARATOR . basename($path);
+								$assets[$htmlPath] = $desc;
 							}
 						}
 					}
@@ -460,21 +482,28 @@ class AssetRepository
 
 
 	/**
+	 * @param string $path
+	 * @param array $info
+	 */
+	private function deployAsset($path, $info)
+	{
+		$subfolder = $info['asset'] . DIRECTORY_SEPARATOR . $info['type'];
+		$this->deployFile($path, (array_key_exists("destination", $info) ? $info['destination'] : null), $subfolder);
+	}
+
+
+	/**
 	 * Zkopíruje soubor ($path) do produkční složky
 	 *
 	 * @param $path - Cesta soubory ke kopirovani
-	 * @param $upload - Jedna se o soubor z upload slozky?
 	 * @param $destination - Cilova slozka, kam soubor zkopirujeme (pokud neni param null)
+	 * @param $subfolder - Podsložka ve veřejné asset složce
 	 */
-	private function deployFile($path, $upload = false, $destination = null)
+	private function deployFile($path, $destination = null, $subfolder = null)
 	{
 		if (file_exists($path)) {
 			if ($destination == null) {
-				if ($upload) {
-					$deploy = $this->getAssetsPublicDirectory() . str_replace($this->getEnvironmentPath($this->getUploadPath()), "", $path);
-				} else {
-					$deploy = $this->getAssetsPublicDirectory() . str_replace($this->getApplicationDirectory(), "", $path);
-				}
+				$deploy = $this->getAssetsPublicDirectory() . DIRECTORY_SEPARATOR . $subfolder . DIRECTORY_SEPARATOR . basename($path);
 			} else {
 				$deploy = $destination;
 			}
@@ -505,7 +534,7 @@ class AssetRepository
 	 */
 	private function getEnvironmentPath($path)
 	{
-		return str_replace(["\\\\", "//"], ["\\", "/"], str_replace(["/", "\\"], DIRECTORY_SEPARATOR, $path));
+		return preg_replace('/(\/+)/', DIRECTORY_SEPARATOR, str_replace(["\\"], "/", $path));
 	}
 
 
@@ -514,7 +543,7 @@ class AssetRepository
 	 */
 	private function isDebug()
 	{
-		return $this->params['debug'];
+		return $this->config['debug'];
 	}
 
 
@@ -523,16 +552,7 @@ class AssetRepository
 	 */
 	private function getDirectoryPermissions()
 	{
-		return $this->params['dirPerm'];
-	}
-
-
-	/**
-	 * @return string
-	 */
-	private function getApplicationDirectory()
-	{
-		return $this->params['appDir'];
+		return $this->config['dirPerm'];
 	}
 
 
@@ -541,7 +561,58 @@ class AssetRepository
 	 */
 	private function getAssetsPublicDirectory()
 	{
-		return $this->params['assetsDir'];
+		return $this->config['wwwDir'] . DIRECTORY_SEPARATOR . $this->config['assetsDir'];
+	}
+
+
+	private function getAssetsDirectory()
+	{
+		return $this->config['assetsDir'];
+	}
+
+
+	/**
+	 * @param $path
+	 * @return string
+	 */
+	private function preparePath($path)
+	{
+		$path = $this->getEnvironmentPath($path);
+
+		if (strpos($path, "&") !== false) {
+			return str_replace('&', $this->getAssetsPublicDirectory(), $path);
+		}
+
+		return $path;
+	}
+
+
+	private function getAssetsDifferencies($cachedAssets, $freshAssets)
+	{
+		$process = [];
+
+		foreach ($cachedAssets as $cPath => $cInfo) {
+			foreach ($freshAssets as $fPath => $fInfo) {
+				if ($cPath == $fPath) {
+					if ($cInfo['time'] != $fInfo['time']) {
+						$process[$fPath] = $fInfo;
+					}
+					unset($cachedAssets[$cPath]);
+					unset($freshAssets[$fPath]);
+				}
+			}
+		}
+
+		if (!empty($cachedAssets)) {
+			// @todo: disabled / removed assets - deal with them
+		}
+
+		if (!empty($freshAssets)) {
+			$this->cache->clean([ Cache::NAMESPACES => ["Fluid.Assets"] ]);
+			$process = $process + $freshAssets;
+		}
+
+		return $process;
 	}
 
 }

@@ -16,7 +16,6 @@ class AssetsTest extends TestCase
 	public function testAssetSorting()
 	{
 		$assetRepository = new AssetRepository([
-			"appDir" => "",
 			"assetsDir" => ""
 		], $this->getSortConfig(), new DevNullStorage());
 
@@ -27,15 +26,19 @@ class AssetsTest extends TestCase
 	public function testAssetLimit()
 	{
 		$assetRepository = new AssetRepository([
-			"appDir" => "",
 			"assetsDir" => ""
 		], $this->getLimitConfig(), new DevNullStorage());
 
-		$dummy1 = realpath(__DIR__ . "/../fixtures/dummy_1.css");
-		$dummy2 = realpath(__DIR__ . "/../fixtures/dummy_2.css");
-		$dummy3 = realpath(__DIR__ . "/../fixtures/dummy_3.css");
-		$dummy4 = realpath(__DIR__ . "/../fixtures/dummy_4.css");
-		$dummy5 = realpath(__DIR__ . "/../fixtures/dummy_5.css");
+		$dummy1 = "/asset_2/css/dummy_1.css";
+        $dummy2 = "/asset_2/css/dummy_2.css";
+        $dummy3 = "/asset_1/css/dummy_3.css";
+        $dummy4 = "/asset_3/css/dummy_4.css";
+        $dummy5 = "/asset_4/css/dummy_5.css";
+
+        $case1 = [$dummy1, $dummy2, $dummy3, $dummy4];
+        $case2 = [$dummy1, $dummy2, $dummy4, $dummy5];
+        asort($case1);
+        asort($case2);
 
 		$assert1 = array_keys($assetRepository->getForCurrentLink("css", ":Sample:Page:default"));
 		asort($assert1);
@@ -43,15 +46,14 @@ class AssetsTest extends TestCase
 		$assert2 = array_keys($assetRepository->getForCurrentLink("css", ":Sample:Test:default"));
 		asort($assert2);
 
-		Assert::equal([$dummy1, $dummy2, $dummy3, $dummy4], array_values($assert1));
-		Assert::equal([$dummy1, $dummy2, $dummy4, $dummy5], array_values($assert2));
+		Assert::equal(array_values($case1), array_values($assert1));
+		Assert::equal(array_values($case2), array_values($assert2));
 	}
 
 
 	public function testAssetDisabled()
 	{
 		$assetRepository = new AssetRepository([
-			"appDir" => "",
 			"assetsDir" => ""
 		], $this->getDisabledConfig(), new DevNullStorage());
 

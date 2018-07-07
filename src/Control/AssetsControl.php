@@ -3,7 +3,8 @@
 namespace Grapesc\GrapeFluid\AssetsControl;
 
 use Grapesc\GrapeFluid\AssetRepository;
-use Grapesc\GrapeFluid\CoreModule\Model\SettingModel;
+use Grapesc\GrapeFluid\Options\EnableAllAssetOptions;
+use Grapesc\GrapeFluid\Options\IAssetOptions;
 use Grapesc\GrapeFluid\ScriptCollector;
 use Nette\Application\UI\Control;
 
@@ -17,41 +18,53 @@ class AssetsControl extends Control
 	/** @var AssetRepository */
 	private $assets;
 
-	/** @var SettingModel */
-	private $settingModel;
+	/** @var IAssetOptions */
+	private $options;
 
 	/** @var ScriptCollector */
 	private $collector;
 
 	
-	public function __construct(AssetRepository $assets, SettingModel $settingModel, ScriptCollector $collector)
+	public function __construct(AssetRepository $assets, ScriptCollector $collector, IAssetOptions $options = null)
 	{
 		parent::__construct();
 		$this->assets = $assets;
-		$this->settingModel = $settingModel;
 		$this->collector = $collector;
+        $this->options = $options == null ? (new EnableAllAssetOptions) : $options;
 		$this->assets->deployAssets();
 	}
+
+
+	public function renderCss()
+    {
+        $this->template->setFile(__DIR__ . '/head.latte');
+        $this->template->options = $this->options;
+        $this->template->assets = $this->assets->getForCurrentLink("css", $this->getPresenter()->getAction(true));
+        $this->template->render();
+    }
+
+
+    public function renderJs()
+    {
+        $this->template->setFile(__DIR__ . "/footer.latte");
+        $this->template->options = $this->options;
+        $this->template->assets = $this->assets->getForCurrentLink("js", $this->getPresenter()->getAction(true));
+        $this->template->render();
+        $this->collector->render();
+    }
 	
 
 	public function renderHead()
 	{
-		$this->template->setFile(__DIR__ . '/head.latte');
-		$this->template->setting = $this->settingModel;
-		$this->template->assets = $this->assets->getForCurrentLink("css", $this->getPresenter()->getAction(true));
-		$this->template->assetsPublicDirectory = $this->template->basePath . "/components/";
-		$this->template->render();
+        trigger_error("Method renderHead is deprecated, use renderCss instead", E_USER_DEPRECATED);
+        $this->renderCss();
 	}
 
 
 	public function renderFooter()
 	{
-		$this->template->setFile(__DIR__ . "/footer.latte");
-		$this->template->setting = $this->settingModel;
-		$this->template->assets = $this->assets->getForCurrentLink("js", $this->getPresenter()->getAction(true));
-		$this->template->assetsPublicDirectory = $this->template->basePath . "/components/";
-		$this->template->render();
-		$this->collector->render();
+        trigger_error("Method renderFooter is deprecated, use renderJs instead", E_USER_DEPRECATED);
+        $this->renderJs();
 	}
 
 }

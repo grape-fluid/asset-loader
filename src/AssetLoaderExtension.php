@@ -10,29 +10,32 @@ use Nette\DI\CompilerExtension;
  */
 class AssetLoaderExtension extends CompilerExtension
 {
-	
+
 	/** @var array */
-	private $params;
-	
-	
-	public function __construct($appDir, $assetsDir, $dirPerm = 0777, $debug = false)
-	{
-		$this->params = [
-			"appDir"    => $appDir,
-			"assetsDir" => $assetsDir,
-			"dirPerm"   => $dirPerm,
-			"debug"     => $debug
-		];
-	}
-	
-	
+	protected $defaults = [
+        "wwwDir" => null,
+        "assetsDir" => "assets",
+        "dirPerm" => 0511,
+        "debug" => false
+	];
+
+
 	public function loadConfiguration()
 	{
-		$config  = $this->getConfig();
+		$config = $this->validateConfig($this->defaults, $this->config['config']);
 		$builder = $this->getContainerBuilder();
 
+		$packages = $this->config;
+		unset($packages['config']);
+
 		$builder->addDefinition($this->prefix('assets'))
-			->setFactory('Grapesc\\GrapeFluid\\AssetRepository', [$this->params, $config]);
+			->setFactory('Grapesc\\GrapeFluid\\AssetRepository', [$config, $packages]);
+
+		$builder->addDefinition($this->prefix("collector"))
+			->setFactory('Grapesc\\GrapeFluid\\ScriptCollector');
+
+		$builder->addDefinition($this->prefix('control'))
+			->setFactory('Grapesc\\GrapeFluid\\AssetsControl\\AssetsControl');
 	}
 	
 }

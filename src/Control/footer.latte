@@ -1,7 +1,7 @@
 {foreach $assets as $a => $desc}
     {var $userAllowed = isset($desc['auth']) ? $user->isAllowed($desc['auth']) : true}
-    {var $option = isset($desc['option']) ? $setting->getVal($desc['option']) : true}
+    {var $option = isset($desc['option']) ? $options->getOption($desc['option']) : true}
     {if $userAllowed && $option}
-        <script src="{isset($desc['url']) && $desc['url'] == true ? $a : $assetsPublicDirectory . $a . '?' . $desc['time']}"></script>
+        <script src="{isset($desc['url']) && $desc['url'] == true ? $a : $basePath . "/" . $a . '?' . $desc['time']}"></script>
     {/if}
 {/foreach}
