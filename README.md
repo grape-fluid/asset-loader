@@ -212,11 +212,11 @@ assets:
 
 By default Asset Loader operates in production mode, you can override this with following:
 
-	```
-	assets:
-		config:
-			debug: true
-	```
+```
+assets:
+	config:
+		debug: true
+```
 
 When debug mode is one, Asseet Loader watch files for changes and deploy them automatically.
 It also works if you add new files into your packages.
@@ -225,16 +225,16 @@ It also works if you add new files into your packages.
 
 ### Custom asset folder
 
-	```
-	assets:
-		config:
-			assetsDir: customDirectoryName
-	```
+```
+assets:
+	config:
+		assetsDir: customDirectoryName
+```
 
 ### Directory permissions
 
-	```
-	assets:
-		config:
-			dirPerm: 0511
-	```
+```
+assets:
+	config:
+		dirPerm: 0511
+```
