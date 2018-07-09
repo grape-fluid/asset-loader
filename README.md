@@ -57,6 +57,8 @@ Asset Loader for your Nette projects
 			css:
 				# will create file in wwwDir/assets/yourPackage/css/styles.css
 				- %appDir%/modules/StyleModule/assets/css/style.css
+				# you can also use external / remote assets
+				- 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css'
 			copy:
 				# will copy all images from folder into wwwDir/assets/yourPackage/copy/
 				- %appDir%/modules/StyleModule/assets/images/*
