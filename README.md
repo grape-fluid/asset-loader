@@ -159,14 +159,21 @@ assets:
 
 #### Limiting by custom options
 
-Create and register custom service that implements `\Grapesc\GrapeFluid\Options\IAssetOptions` interface.
+Create and define custom service that implements `\Grapesc\GrapeFluid\Options\IAssetOptions` interface as written below.
+**We are automatically registering these as services** sou you don't have to.
+**Inject through constructor** in these services also works.
 Now you are able to handle limits in any way you want.
 For example enable / disable assets from your back-office.
 
 ```
 assets:
+	config:
+		options:
+			# Must implement \Grapesc\GrapeFluid\Options\IAssetOptions
+			- \Your\Class\That\Handles\SomeOptions
+			- \Your\Class\That\Handles\AnotherOptions
 	yourPackage:
-		# Will call $yourService->getOption('inline.enabled')
+		# Will call $class->getOption('inline.enabled') on every service
 		- ['link' = ':Module:Presenter.*', 'option' = 'inline.enabled']
 ```
 
