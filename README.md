@@ -10,9 +10,22 @@
 
 Asset Loader for your Nette projects
 
+## Dependencies
+
+| Require           | Version      |
+|-------------------|--------------|
+| PHP               | `>= 5.6`     |
+| nette/application | `^2.4`       |
+| nette/di          | `^2.4`       |
+
+| Require-dev       | Version      |
+|-------------------|--------------|
+| nette/tester      | `^2.0`       |
+| tracy/tracy       | `^2.4`       |
+
 ## Quickstart
 
-1. Install Asset Loader with composer
+1. Install **Asset Loader** with composer
 
 	```
 	composer require grape-fluid/asset-loader
