@@ -4,6 +4,7 @@
     {if isset($desc['option'])}
         {foreach $assetOptionServices as $assetOptionService}
             {php $option = $assetOptionService->getOption($desc['option'])}
+            {breakIf $option == true}
         {/foreach}
     {/if}
     {if $userAllowed && $option}

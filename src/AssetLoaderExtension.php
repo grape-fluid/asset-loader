@@ -5,6 +5,7 @@ namespace Grapesc\GrapeFluid;
 use Grapesc\GrapeFluid\Options\EnableAllAssetOptions;
 use Grapesc\GrapeFluid\Options\IAssetOptions;
 use Nette\DI\CompilerExtension;
+use Nette\DI\Config\Helpers;
 use Nette\DI\Statement;
 
 
@@ -24,12 +25,21 @@ class AssetLoaderExtension extends CompilerExtension
 	];
 
 	/** @var array */
+	private $defaultConfig = [];
+
+	/** @var array */
 	private $options = [];
+
+
+	public function __construct(array $defaultConfig = [])
+	{
+		$this->defaultConfig = $defaultConfig;
+	}
 
 
 	public function loadConfiguration()
 	{
-		$config = $this->validateConfig($this->defaults, $this->config['config']);
+		$config = $this->validateConfig($this->defaults, Helpers::merge($this->defaultConfig, $this->config['config'] ?? []));
 		$builder = $this->getContainerBuilder();
 		$optionClasses = $config['options'];
 		unset($config['options']);
