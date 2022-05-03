@@ -29,7 +29,7 @@ class AssetRepository
 	private $deployed = false;
 
 
-	public function __construct(array $config, array $assets = [], IStorage $IStorage)
+	public function __construct(array $config, array $assets = [], IStorage $IStorage = null)
 	{
 		$this->config = $config;
 		$this->assets = $assets;
