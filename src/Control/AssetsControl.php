@@ -27,7 +27,6 @@ class AssetsControl extends Control
 	
 	public function __construct(AssetRepository $assets, ScriptCollector $collector)
 	{
-		parent::__construct();
 		$this->assets = $assets;
 		$this->collector = $collector;
 		$this->assets->deployAssets();
