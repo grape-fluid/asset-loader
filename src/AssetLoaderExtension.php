@@ -82,7 +82,7 @@ class AssetLoaderExtension extends CompilerExtension
     public function beforeCompile()
     {
         $builder = $this->getContainerBuilder();
-        $builder->getDefinition("assets.control")->addSetup(new Statement('$service->setOptionClasses(?)', [$this->options]));
+        $builder->getDefinition("fluidAssets.control")->addSetup(new Statement('$service->setOptionClasses(?)', [$this->options]));
     }
 	
 }
